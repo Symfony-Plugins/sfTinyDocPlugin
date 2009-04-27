@@ -11,7 +11,7 @@
  *
  * @package    tinyDoc
  * @subpackage sfTinyDoc
- * @author     Olivier Loynet <olivierloynet@gmail.com>
+ * @author     Olivier Loynet <tinydoc@googlegroups.com>
  * @version    SVN: $Id: sfTinyDoc.class.php 1 2009-04-22 07:00:00Z oloynet $
  */
 class sfTinyDoc extends tinyDoc
@@ -32,10 +32,13 @@ class sfTinyDoc extends tinyDoc
   function __construct()
   {
     // get default setting from symfony 'app.yml'
-    $this->setZipMethod(  sfConfig::get('app_sf_tiny_doc_plugin_zip_method'   , 'shell'));
-    $this->setZipBinary(  sfConfig::get('app_sf_tiny_doc_plugin_zip_bin'      , 'zip'));
-    $this->setUnzipBinary(sfConfig::get('app_sf_tiny_doc_plugin_unzip_bin'    , 'unzip'));
-    $this->setProcessDir( sfConfig::get('app_sf_tiny_doc_plugin_process_dir'  , sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.'tmp'));
+    $this->setZipMethod(sfConfig::get('app_sf_tiny_doc_plugin_zip_method', 'shell'));
+    if ($this->getZipMethod() == 'shell')
+    {
+      $this->setZipBinary(sfConfig::get('app_sf_tiny_doc_plugin_zip_bin', 'zip'));
+      $this->setUnzipBinary(sfConfig::get('app_sf_tiny_doc_plugin_unzip_bin', 'unzip'));
+    }
+    $this->setProcessDir(sfConfig::get('app_sf_tiny_doc_plugin_process_dir', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.'tmp'));
   }
 
 

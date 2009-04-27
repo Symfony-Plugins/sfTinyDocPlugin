@@ -11,12 +11,12 @@
   <active>yes</active>
  </lead>
 
- <date>2009-04-22</date>
- <time>07:00:00</time>
+ <date>2009-04-27</date>
+ <time>12:28:00</time>
 
  <version>
-  <release>1.0.0</release>
-  <api>1.0.0</api>
+  <release>1.0.1</release>
+  <api>1.0.1</api>
  </version>
 
  <stability>
@@ -60,6 +60,34 @@
 <changelog>
   <release>
     <version>
+      <release>1.0.1</release>
+      <api>1.0.1</api>
+    </version>
+    <stability>
+     <release>stable</release>
+     <api>stable</api>
+    </stability>
+    <license uri="http://www.symfony-project.org/license">MIT license</license>
+    <date>2009-04-27</date>
+    <license>MIT</license>
+    <notes>
+      * mailing list created : tinydoc@googlegroups.com
+
+      * new parameter 'image' to merge automaticaly images in method __`meth_Locator_Replace()`__ 
+        * parameter 'image'.      Ex. : [b1.src;image]
+        * parameter 'image=25%'.  Ex. : [b1.src;image=25%]
+        * parameter 'image=200%'. Ex. : [b1.src;image=200%]
+        * parameter 'image=fit'.  Ex. : [b1.src;image=fit]
+        * parameter 'image=max'.  Ex. : [b1.src;image=max]
+
+      * new parameter 'link' to transform url in linkable text in method __`meth_Locator_Replace()`__ 
+        * parameter 'link'.       Ex. : [b1.url;link]
+        * parameter 'link=title'. Ex. : [b1.url;link=title]
+
+    </notes>
+  </release>
+  <release>
+    <version>
       <release>1.0.0</release>
       <api>1.0.0</api>
     </version>
@@ -74,8 +102,5 @@
       * release 1.0
     </notes>
   </release>
-
-
-
  </changelog>
 </package>

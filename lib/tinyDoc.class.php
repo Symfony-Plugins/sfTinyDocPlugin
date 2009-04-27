@@ -4,6 +4,7 @@
  *
  * This class extends TinyButStrong class to work with OpenDocument and Word 2007 documents.
  *
+ * This class needs : PHP 5.2
  * This class needs : TinyButStrong class
  * This class needs optionally : ZipArchive from PECL
  *
@@ -12,11 +13,13 @@
  *
  * @package    tinyDoc
  * @subpackage tinyDoc
- * @author     Olivier Loynet <olivierloynet@gmail.com>
+ * @author     Olivier Loynet <tinydoc@googlegroups.com>
  * @version    SVN: $Id: tinyDoc.class.php 1 2009-04-22 07:00:00Z oloynet $
  */
 class tinyDoc extends clsTinyButStrong
 {
+  const PIXEL_TO_CM = 0.026458333; // from odtPHP lib
+
   private
     $zipMethod         = 'shell',
     $zipBin            = 'zip',
@@ -485,9 +488,10 @@ class tinyDoc extends clsTinyButStrong
 
 
   /**
+   * This function is obsolete, use parameter 'image' to merge image.
+   *
    * Hack to change in the XML source the tags for image. Only tags with [*.src] work.
    * The TBS tag need to set with OpenOffice into the title field of the image property.
-   * This method can evoluate.
    *
    * Experimental : only for OpenDocument/OpenOffice. Image in blocks don't work with spreadsheet.
    */
@@ -924,6 +928,11 @@ class tinyDoc extends clsTinyButStrong
       throw new Exception(sprintf('Zip method "%s" need to be \'shell\' or \'ziparchive\'', $method));
     }
 
+    if ($method == 'ziparchive' && !class_exists('ZipArchive'))
+    {
+      throw new Exception('Zip extension not loaded - check your php settings, PHP 5.2 minimum with zip extension is required');
+    }
+
     $this->zipMethod = $method;
   }
 
@@ -952,10 +961,10 @@ class tinyDoc extends clsTinyButStrong
    * @param  string $Value     TBS data to merge
    * @param  string $CheckSub  TBS checksub ???
    */
-
   public function meth_Locator_Replace(&$Txt, &$Loc, &$Value, $CheckSub)
   {
-    if(!isset($Loc->PrmLst['type']))
+
+    if (!isset($Loc->PrmLst['type']) && !isset($Loc->PrmLst['image']) && !isset($Loc->PrmLst['link']))
     {
       return parent::meth_Locator_Replace($Txt, $Loc, $Value, $CheckSub);
     }
@@ -965,76 +974,192 @@ class tinyDoc extends clsTinyButStrong
     $posEnd = $Loc->PosEnd;
 
     // get data
-    $data = $Value[$Loc->SubLst[0]];
+    $data = isset($Value[$Loc->SubLst[0]]) ? $Value[$Loc->SubLst[0]] : null;
 
-    // new cell attribute
-    // see : http://books.evc-cit.info/odbook/ch05.html#table-cells-section
-    switch($Loc->PrmLst['type'])
+    // ----- parameter = type
+    if (isset($Loc->PrmLst['type']))
     {
-      case 'datetime':
-      case 'date':
-      case 'dt':
-      case 'd':
-        $cellAttribute = sprintf('office:value-type="date" office:date-value="%s"', str_replace(' ', 'T', $data));
-        break;
+      if ($data == '')
+      {
+        $Txt = substr_replace($Txt, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
+        $Loc->PosBeg   = $posBeg;
+        $Loc->PosEnd   = $posEnd;
+        return $Loc->PosBeg;
+      }
 
-      case 'time':
-      case 't':
-        list($h, $m, $s) = split(":", $data);
-        $cellAttribute = sprintf('office:value-type="time" office:time-value="PT%sH%sM%sS"', $h, $m, $s);
-        break;
+      // new cell attribute - see : http://books.evc-cit.info/odbook/ch05.html#table-cells-section
+      switch($Loc->PrmLst['type'])
+      {
+        case 'datetime':
+        case 'date':
+        case 'dt':
+        case 'd':
+          $attribute = sprintf('office:value-type="date" office:date-value="%s"', str_replace(' ', 'T', $data));
+          break;
 
-      case 'percentage':
-      case 'percent':
-      case 'p':
-        $cellAttribute = sprintf('office:value-type="percentage" office:value="%s"', $data);
-        break;
+        case 'time':
+        case 't':
+          list($h, $m, $s) = split(":", $data);
+          $attribute = sprintf('office:value-type="time" office:time-value="PT%sH%sM%sS"', $h, $m, $s);
+          break;
 
-      case 'currency':
-      case 'cur':
-      case 'c':
-        //$cellAttribute = sprintf('office:value-type="currency" office:currency="EUR" office:value="%s"', $data); // still not necessary to fix the currency
-        $cellAttribute = sprintf('office:value-type="currency" office:value="%s"', $data);
-        break;
+        case 'percentage':
+        case 'percent':
+        case 'p':
+          $attribute = sprintf('office:value-type="percentage" office:value="%s"', $data);
+          break;
 
-      case 'float':
-      case 'f':
-        $cellAttribute = sprintf('office:value-type="float" office:value="%s"', $data);
-        break;
+        case 'currency':
+        case 'cur':
+        case 'c':
+          //$attribute = sprintf('office:value-type="currency" office:currency="EUR" office:value="%s"', $data); // still not necessary to fix the currency
+          $attribute = sprintf('office:value-type="currency" office:value="%s"', $data);
+          break;
 
-      case 'int':
-      case 'i':
-        $cellAttribute = sprintf('office:value-type="float" office:value="%d"', $data);
-        break;
+        case 'float':
+        case 'f':
+          $attribute = sprintf('office:value-type="float" office:value="%s"', $data);
+          break;
 
-      case 'boolean':
-      case 'bool':
-      case 'b':
-        $cellAttribute = sprintf('office:value-type="float" office:value="%d"', $data);
-        break;
+        case 'int':
+        case 'i':
+          $attribute = sprintf('office:value-type="float" office:value="%d"', $data);
+          break;
 
-      default:
-      case 'string':
-      case 's':
-        $cellAttribute = sprintf('office:value-type="string"');
-        break;
+        case 'boolean':
+        case 'bool':
+        case 'b':
+          $attribute = sprintf('office:value-type="float" office:value="%d"', $data);
+          break;
+
+        default:
+        case 'string':
+        case 's':
+          $attribute = sprintf('office:value-type="string"');
+          break;
+      }
+
+      // get container enlarged to table:table-cell
+      $Loc->Enlarged    = $this->f_Loc_EnlargeToStr($Txt, $Loc, '<table:table-cell' ,'/table:table-cell>');
+      $container    = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+
+      if ($container == '')
+      {
+        throw new Exception(sprintf('<table:table-cell not found in document "%s"', $this->getXmlFilename()));
+      }
+
+      // new container
+      $newContainer = preg_replace('/office:value-type="string"/', $attribute, $container);
+
+      // replace the new cell containter in the main Txt
+      $Txt = substr_replace($Txt, $newContainer, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
+
+      // correct 'Loc' to include the change of the new cell container
+      $delta = strlen($newContainer) - strlen($container);
+      $Loc->PosBeg   = $posBeg + $delta;
+      $Loc->PosEnd   = $posEnd + $delta;
+      $Loc->Enlarged = null;
     }
 
-    // get cell container enlarged to table:table-cell
-    $Loc->Enlarged    = $this->f_Loc_EnlargeToStr($Txt, $Loc, '<table:table-cell' ,'>');
-    $cellContainer    = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+    // ----- parameter = image
+    if (isset($Loc->PrmLst['image']))
+    {
+      // get container enlarged to draw:frame
+      $Loc->Enlarged = $this->f_Loc_EnlargeToStr($Txt, $Loc, '<draw:frame' ,'/draw:frame>');
+      $container = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
 
-    // new cell container
-    $newCellContainer = preg_replace('/office:value-type="string"/', $cellAttribute, $cellContainer);
+      if ($container == '')
+      {
+        throw new Exception(sprintf('<draw:frame not found in document "%s"', $this->getXmlFilename()));
+      }
 
-    // replace the new cell containter in the main Txt
-    $Txt = substr_replace($Txt, $newCellContainer, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
+      // test if data is empty or if file exists
+      if ($data == '' || !file_exists($data))
+      {
+        $Txt = substr_replace($Txt, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
+        $Loc->PosBeg   = $posBeg;
+        $Loc->PosEnd   = $posEnd;
+        $Loc->Enlarged = null;
+        return $Loc->PosBeg;
+      }
 
-    // correct 'Loc' to include the change of the new cell container
-    $delta = strlen($newCellContainer) - strlen($cellContainer);
-    $Loc->PosBeg   = $posBeg + $delta;
-    $Loc->PosEnd   = $posEnd + $delta;
-    $Loc->Enlarged = null;
+      $picture = 'Pictures/'.basename($data);
+
+      // image size
+      $size = @getimagesize($data);
+      if ($size === false)
+      {
+        throw new Exception(sprintf('Invalid image format "%"', $data));
+      }
+      else
+      {
+        list ($width, $height) = $size;
+      }
+
+
+      // image ratio
+      $ratio = 1;
+      if (preg_match('/([0-9\.]*)%/', $Loc->PrmLst['image'], $matches) > 0)
+      {
+        $ratio = $matches[1] / 100;
+      }
+      elseif ($Loc->PrmLst['image'] === 'fit')
+      {
+        preg_match('/svg:width="(.*?)cm" svg:height="(.*?)cm"/', $container, $matches);
+        $ratio_w = $matches[1] / ($width * self::PIXEL_TO_CM);
+        $ratio_h = $matches[2] / ($height * self::PIXEL_TO_CM);
+
+        $ratio = min($ratio_w, $ratio_h);
+      }
+      elseif ($Loc->PrmLst['image'] === 'max')
+      {
+        preg_match('/svg:width="(.*?)cm" svg:height="(.*?)cm"/', $container, $matches);
+        $ratio_w = $matches[1] / ($width * self::PIXEL_TO_CM);
+        $ratio_h = $matches[2] / ($height * self::PIXEL_TO_CM);
+
+        $ratio = min(1, $ratio_w, $ratio_h);
+      }
+
+      // replace values
+      $newContainer = $container;
+      $newContainer = preg_replace('/svg:width="(.*?)cm"/' , sprintf('svg:width="%scm"' , $width  * self::PIXEL_TO_CM * $ratio), $newContainer);
+      $newContainer = preg_replace('/svg:height="(.*?)cm"/', sprintf('svg:height="%scm"', $height * self::PIXEL_TO_CM * $ratio), $newContainer);
+      $newContainer = preg_replace('/xlink:href="(.*?)"/'  , sprintf('xlink:href="%s"'  , $picture), $newContainer);
+
+      // add file
+      $this->addFile($data, $picture);
+
+      // replace the new cell containter in the main Txt
+      $Txt = substr_replace($Txt, $newContainer, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+
+      $Loc->PosBeg   = $posBeg;
+      $Loc->PosEnd   = $posEnd;
+      $Loc->Enlarged = null;
+    }
+
+
+    // ----- parameter = link
+    if (isset($Loc->PrmLst['link']))
+    {
+      if ($data == '')
+      {
+        $Txt = substr_replace($Txt, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
+        $Loc->PosBeg   = $posBeg;
+        $Loc->PosEnd   = $posEnd;
+        return $Loc->PosBeg;
+      }
+
+      $container = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+      $title = ($Loc->PrmLst['link'] != '1' ? $Loc->PrmLst['link'] : $data);
+      $newContainer = sprintf('<text:a xlink:type="simple" xlink:href="%s">%s</text:a>', $data, $title);
+
+      $Txt = substr_replace($Txt, $newContainer, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+
+      // before return, restore 'Loc' with beginning values (to work with block)
+      $Loc->PosBeg   = $posBeg;
+      $Loc->PosEnd   = $posEnd;
+      return $Loc->PosEnd;
+    }
 
     // call the parent method to insert the value
     $ret = parent::meth_Locator_Replace($Txt, $Loc, $Value, $CheckSub);
