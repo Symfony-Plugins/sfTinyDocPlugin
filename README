@@ -78,7 +78,12 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Install sfTinyDocPlugin :
 
-        symfony plugin-install http://plugins.symfony-project.com/sfTinyDocPlugin
+        $ pear channel-discover pear.symfony-project.com
+        $ symfony plugin-install http://plugins.symfony-project.com/sfTinyDocPlugin
+
+    Or from the SVN repository
+
+        $ svn co http://svn.symfony-project.com/plugins/sfTinyDocPlugin/trunk/
 
   * Optionally add the following config to `app.yml` :
 
@@ -91,7 +96,7 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Clear your cache :
 
-        symfony cc
+        $ ./symfony cc
 
   * Configure the method to zip/unzip office documents :
 
@@ -99,19 +104,19 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
       To install Zip on Red Hat Enterprise Linux or CentOS
 
-              yum install zip
+              $ yum install zip
 
     * Method 2 : __ziparchive__
 
        To install Pecl ZipArchive on Red Hat Enterprise Linux or CentOS
 
-              yum install httpd-devel
-              pecl install zip
+              $ yum install httpd-devel
+              $ pecl install zip
 
   * Create a directory where to process temporary files, by example on web root :
 
-        mkdir web/tmp
-        chmod 777 web/tmp
+        $ mkdir web/tmp
+        $ chmod 777 web/tmp
 
 
 ## My first OpenOffice text document in action (.odt)
@@ -120,6 +125,8 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Create an action `basic` in `doc/actions/actions.class.php`
 
+        [php]
+        <?php
         public function executeBasic(sfWebRequest $request)
         {
           // create the document
@@ -203,10 +210,14 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Change in your action
 
+        [php]
+        <?php
         $doc->createFrom();
 
   By
 
+        [php]
+        <?php
         $doc->createFrom(array('extension' => 'ods'));
 
 
@@ -242,11 +253,15 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Change in your action
 
+        [php]
+        <?php
         $doc->createFrom();
         $doc->loadXml('content.xml');
 
   By
 
+        [php]
+        <?php
         $doc->createFrom(array('extension' => 'docx'));
         $doc->loadXml('word/document.xml');
 
@@ -280,8 +295,10 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   ### Tips
 
+        [php]
+        <?php
         $doc->createFrom();  // the defaut extension is 'odt'
-        $doc->loadXml(); // the defaut XML filename is 'content.xml'
+        $doc->loadXml();     // the defaut XML filename is 'content.xml'
 
 
 ## The basic structure of OpenDocument (OpenOffice) and Word 2007 files
@@ -326,23 +343,25 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   Each time you have to merge data with an another file you have to
 
+        [php]
+        <?php
         $doc->loadXml('content.xml');
-        ...
+        // ...
         $doc->mergeXml(...);
         $doc->mergeXmlField(...);
         $doc->mergeXmlBlock(...);
         $doc->mergeXml(...);
-        ...
+        // ...
         $doc->saveXml();
 
 
         $doc->loadXml('styles.xml');
-        ...
+        // ...
         $doc->mergeXml(...);
         $doc->mergeXmlField(...);
         $doc->mergeXmlBlock(...);
         $doc->mergeXml(...);
-        ...
+        // ...
         $doc->saveXml();
 
   * There two different methods to merge data, field and block
@@ -371,6 +390,8 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
     Example :
 
+          [php]
+          <?php
           $doc->mergeXml(
             array(
               'name'      => 'b1',
@@ -419,9 +440,9 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
   * __image__ : This parameter is to merge image automaticaly
   
     * __image__ or __image=100%__ are equivalent
-    * __image=[ratio]__ fix the ratio of the images
-    * __image=fit__ the image is fit to the maximum's image size in the template
-    * __image=max__ the image is limited to the maximum's image size in the template
+    * __image=[ratio]__ fix the ratio of the merged image
+    * __image=fit__ the merged image is reduced or increased to fit on template's image size with the best ratio
+    * __image=max__ the merged image is limited to the maximum template's image size
 
       Examples :
 
@@ -439,19 +460,24 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
     > Note #3 : If the image is empty or not found, the image is removed.
 
 
+  * __link__ : This parameter to transform to a linkable text
+
+    * __link__ 
+    * __link=click here__ to render a different text, "click here" in this example
+
+
   * __type__ : This parameter fixes the __type__ of the cell, not the format (only for spreadsheet).
 
     * __type=currency__   or the shorten way __type=c__. Input data is float.
     * __type=date__       or __type=d__. Input data is string like 'Y-m-d' or 'Y-m-d H:i:s'.
-    * __type=float__      or __type=f__. Input data is float.
-    * __type=int__        or __type=i__. Input data is integer.
-    * __type=percentage__ or __type=p__. Input data is float.
+    * __type=number__     or __type=n__. Input data is float or integer.
+    * __type=percent__    or __type=p__. Input data is float.
     * __type=time__       or __type=t__. Input data is string like 'H:i:s'.
 
       Examples :
 
-            [field;type=float]
-            [field;type=f]
+            [field;type=number]
+            [field;type=n]
             [field.data;type=date]
             [block.data;type=percentage]
             [block.data;type=time]
@@ -468,10 +494,17 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 As in French we can said, "Un dessin vaut mieux qu'un long discours", here some [examples](http://tinydoc.unesolution.fr/examples) for sfTinyDocPlugin
 
 
-## Bugs / Features
+## Bugs
+
+* news parameters [link, image and type] only work with data merged from an array
+
+
+## Features
 
 * add tinyDocException class
 
+        [php]
+        <?php
         class tinyDocException extends Exception
         {
         }
@@ -479,6 +512,15 @@ As in French we can said, "Un dessin vaut mieux qu'un long discours", here some 
 * add optionals parameters in method __`sendResponse()`__
 
 * support 'inches' in parameter image
+
+* add formula support in spreadsheet
+
+        [php]
+        <?php
+        <table:table-cell table:formula="of:=IF([.B2]&gt;0;&quot;true&quot;;&quot;false&quot;)" office:value-type="string" office:string-value="true">
+          <text:p>true</text:p>
+        </table:table-cell>
+
 
 * support native format (float, percentage, currency, date, time) in word processing tables (* difficult)
 
@@ -495,9 +537,19 @@ As in French we can said, "Un dessin vaut mieux qu'un long discours", here some 
 
 ## Support
 
-Please email to the mailing-list [tinydoc@googlegroups.com](mailto:tinydoc@googlegroups.com) for support.
+Mailing-list : [http://groups.google.fr/group/tinydoc](http://groups.google.fr/group/tinydoc)
 
-The __tbsOOo class__ is no longer supported, and I strongly discourage his use (if only because they have many more bugs and far fewer features than this one)
+Please email to the mailing-list [tinydoc@googlegroups.com](mailto:tinydoc@googlegroups.com) for support (register only).
+
+The __tbsOOo class__ is no longer supported, and I strongly discourage his use.
+
+
+## Contribution
+
+If you have feature suggestions, bug reports, patches, usage examples for the documentation
+ or want to become an active contributor, send me an email to: olivierloynet [at] gmail [dot] com
+
+Any help is welcome!
 
 
 ## Acknowledgements

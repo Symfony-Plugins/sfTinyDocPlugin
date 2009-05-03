@@ -1,6 +1,6 @@
 <?php
 /**
- * tinyDoc
+ * tinyDoc class.
  *
  * This class extends TinyButStrong class to work with OpenDocument and Word 2007 documents.
  *
@@ -14,8 +14,9 @@
  * @package    tinyDoc
  * @subpackage tinyDoc
  * @author     Olivier Loynet <tinydoc@googlegroups.com>
- * @version    SVN: $Id: tinyDoc.class.php 1 2009-04-22 07:00:00Z oloynet $
+ * @version    $Id$
  */
+
 class tinyDoc extends clsTinyButStrong
 {
   const PIXEL_TO_CM = 0.026458333; // from odtPHP lib
@@ -87,7 +88,7 @@ class tinyDoc extends clsTinyButStrong
   /**
    * Constructor.
    */
-  function __construct()
+  public function __construct()
   {
   }
 
@@ -309,7 +310,7 @@ class tinyDoc extends clsTinyButStrong
     }
 
     // convert special XML chars
-    $encodeData = str_replace('&' ,'&amp;',  $encodeData); // has to be the first convert
+    $encodeData = str_replace('&' ,'&amp;',  $encodeData); // the '&' has to be the first to convert
     $encodeData = str_replace('\'' ,'&apos;', $encodeData);
     $encodeData = str_replace('"' ,'&quot;', $encodeData);
 
@@ -488,7 +489,7 @@ class tinyDoc extends clsTinyButStrong
 
 
   /**
-   * This function is obsolete, use parameter 'image' to merge image.
+   * This function is obsolete, use parameter 'image' to merge pictures.
    *
    * Hack to change in the XML source the tags for image. Only tags with [*.src] work.
    * The TBS tag need to set with OpenOffice into the title field of the image property.
@@ -969,12 +970,16 @@ class tinyDoc extends clsTinyButStrong
       return parent::meth_Locator_Replace($Txt, $Loc, $Value, $CheckSub);
     }
 
-    // keep 'Loc' for the end
+    // keep 'Loc' position for the end
     $posBeg = $Loc->PosBeg;
     $posEnd = $Loc->PosEnd;
 
     // get data
-    $data = isset($Value[$Loc->SubLst[0]]) ? $Value[$Loc->SubLst[0]] : null;
+    $data = isset($Value) ? $Value : null;
+    foreach($Loc->SubLst as $sub)
+    {
+      $data = isset($Value[$sub]) ? $Value[$sub] : null ;
+    }
 
     // ----- parameter = type
     if (isset($Loc->PrmLst['type']))
@@ -987,7 +992,16 @@ class tinyDoc extends clsTinyButStrong
         return $Loc->PosBeg;
       }
 
-      // new cell attribute - see : http://books.evc-cit.info/odbook/ch05.html#table-cells-section
+      // get container enlarged to table:table-cell
+      $Loc->Enlarged    = $this->f_Loc_EnlargeToStr($Txt, $Loc, '<table:table-cell' ,'/table:table-cell>');
+      $container    = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
+
+      if ($container == '')
+      {
+        throw new Exception(sprintf('<table:table-cell not found in document "%s"', $this->getXmlFilename()));
+      }
+
+      // OpenOffice attributes cell - see : http://books.evc-cit.info/odbook/ch05.html#table-cells-section
       switch($Loc->PrmLst['type'])
       {
         case 'datetime':
@@ -1016,6 +1030,8 @@ class tinyDoc extends clsTinyButStrong
           $attribute = sprintf('office:value-type="currency" office:value="%s"', $data);
           break;
 
+        case 'number':
+        case 'n':
         case 'float':
         case 'f':
           $attribute = sprintf('office:value-type="float" office:value="%s"', $data);
@@ -1026,26 +1042,11 @@ class tinyDoc extends clsTinyButStrong
           $attribute = sprintf('office:value-type="float" office:value="%d"', $data);
           break;
 
-        case 'boolean':
-        case 'bool':
-        case 'b':
-          $attribute = sprintf('office:value-type="float" office:value="%d"', $data);
-          break;
-
         default:
         case 'string':
         case 's':
           $attribute = sprintf('office:value-type="string"');
           break;
-      }
-
-      // get container enlarged to table:table-cell
-      $Loc->Enlarged    = $this->f_Loc_EnlargeToStr($Txt, $Loc, '<table:table-cell' ,'/table:table-cell>');
-      $container    = substr($Txt, $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
-
-      if ($container == '')
-      {
-        throw new Exception(sprintf('<table:table-cell not found in document "%s"', $this->getXmlFilename()));
       }
 
       // new container
@@ -1061,6 +1062,7 @@ class tinyDoc extends clsTinyButStrong
       $Loc->Enlarged = null;
     }
 
+
     // ----- parameter = image
     if (isset($Loc->PrmLst['image']))
     {
@@ -1073,7 +1075,7 @@ class tinyDoc extends clsTinyButStrong
         throw new Exception(sprintf('<draw:frame not found in document "%s"', $this->getXmlFilename()));
       }
 
-      // test if data is empty or if file exists
+      // test if data is empty or if file not exists
       if ($data == '' || !file_exists($data))
       {
         $Txt = substr_replace($Txt, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1 );
