@@ -496,20 +496,10 @@ As in French we can said, "Un dessin vaut mieux qu'un long discours", here some 
 
 ## Bugs
 
-* news parameters [link, image and type] only work with data merged from an array
+* FIXED : news parameters [link, image and type] only work with data merged from an array
 
 
 ## Features
-
-* add tinyDocException class
-
-        [php]
-        <?php
-        class tinyDocException extends Exception
-        {
-        }
-
-* add optionals parameters in method __`sendResponse()`__
 
 * support 'inches' in parameter image
 
@@ -521,10 +511,11 @@ As in French we can said, "Un dessin vaut mieux qu'un long discours", here some 
           <text:p>true</text:p>
         </table:table-cell>
 
+* add optionals parameters in method __`sendResponse()`__
 
-* support native format (float, percentage, currency, date, time) in word processing tables (* difficult)
+* support native format (float, percentage, currency, date, time) in word processing tables (* not easy)
 
-* support merge images with a block in spreadsheet (* difficult)
+* support merge images with a block in spreadsheet (* not easy)
 
 * next TinyButStrong version (3.5 ?) to support iterators and a new parameter to merge sub-block.
 

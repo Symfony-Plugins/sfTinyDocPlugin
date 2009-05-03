@@ -123,11 +123,11 @@ class tinyDoc extends clsTinyButStrong
     // create an unique directory like basename to zip/unzip files
     if (!mkdir($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename(), 0777, true))
     {
-      throw new Exception(sprintf('Can\'t make directory "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename()));
+      throw new tinyDocException(sprintf('Can\'t make directory "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename()));
     }
     if (!is_dir($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename()))
     {
-      throw new Exception(sprintf('Directory not found "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename()));
+      throw new tinyDocException(sprintf('Directory not found "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename()));
     }
 
     // copy the file source into the process dir with an unique filename
@@ -135,11 +135,11 @@ class tinyDoc extends clsTinyButStrong
     {
       if (!file_exists($this->getSourcePathname()))
       {
-        throw new Exception(sprintf('Can\'t copy file, source file not found "%s"', $this->getSourcePathname()));
+        throw new tinyDocException(sprintf('Can\'t copy file, source file not found "%s"', $this->getSourcePathname()));
       }
       else
       {
-        throw new Exception(sprintf('Can\'t copy file from "%s" to "%s"', $this->getSourcePathname(), $this->getPathname()));
+        throw new tinyDocException(sprintf('Can\'t copy file from "%s" to "%s"', $this->getSourcePathname(), $this->getPathname()));
       }
     }
 
@@ -181,7 +181,7 @@ class tinyDoc extends clsTinyButStrong
     // test if the XML file exist
     if (!file_exists($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename().DIRECTORY_SEPARATOR.$this->getXmlFilename()))
     {
-      throw new Exception(sprintf('Xml file not found "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename().DIRECTORY_SEPARATOR.$this->getXmlFilename()));
+      throw new tinyDocException(sprintf('Xml file not found "%s"', $this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename().DIRECTORY_SEPARATOR.$this->getXmlFilename()));
     }
 
     // load the XML file as a TBS template
@@ -841,13 +841,13 @@ class tinyDoc extends clsTinyButStrong
     // test if file exist
     if (!file_exists($sourcePathname))
     {
-      throw new Exception(sprintf('File not found "%s"', $sourcePathname));
+      throw new tinyDocException(sprintf('File not found "%s"', $sourcePathname));
     }
 
     // test if file readable
     if (!is_readable($sourcePathname))
     {
-      throw new Exception(sprintf('File not readable "%s"', $sourcePathname));
+      throw new tinyDocException(sprintf('File not readable "%s"', $sourcePathname));
     }
 
     $this->sourcePathname = $sourcePathname;
@@ -861,23 +861,20 @@ class tinyDoc extends clsTinyButStrong
    */
   public function setProcessDir($processDir = 'tmp')
   {
-    clearstatcache();
-    $processDir = realpath($processDir);
-
-    if ($processDir == realpath(DIRECTORY_SEPARATOR))
+    if (realpath($processDir) == realpath(DIRECTORY_SEPARATOR))
     {
-      throw new Exception(sprintf('Could not use the root directory "%s"', $processDir));
+      throw new tinyDocException(sprintf('Could not use the root for the process directory "%s"', $processDir));
     }
-    if (!is_dir($processDir))
+    if (!is_dir(realpath($processDir)))
     {
-      throw new Exception(sprintf('Directory not found "%s"', $processDir));
+      throw new tinyDocException(sprintf('Process directory not found "%s"', $processDir));
     }
-    if (!is_writable($processDir))
+    if (!is_writable(realpath($processDir)))
     {
-      throw new Exception(sprintf('Directory not writable "%s"', $processDir));
+      throw new tinyDocException(sprintf('Process directory not writable "%s"', $processDir));
     }
 
-    $this->processDir = rtrim($processDir, DIRECTORY_SEPARATOR);
+    $this->processDir = rtrim(realpath($processDir), DIRECTORY_SEPARATOR);
   }
 
 
@@ -892,7 +889,7 @@ class tinyDoc extends clsTinyButStrong
     {
       if (strlen(shell_exec($unzipBinary.' -h')) == 0)
       {
-        throw new Exception(sprintf('"%s" not executable', $unzipBinary));
+        throw new tinyDocException(sprintf('"%s" not executable', $unzipBinary));
       }
 
       $this->unzipBin = $unzipBinary;
@@ -922,7 +919,7 @@ class tinyDoc extends clsTinyButStrong
     {
       if (strlen(shell_exec($zipBinary.' -h')) == 0)
       {
-        throw new Exception(sprintf('"%s" not executable', $zipBinary));
+        throw new tinyDocException(sprintf('"%s" not executable', $zipBinary));
       }
 
       $this->zipBin = $zipBinary;
@@ -941,12 +938,12 @@ class tinyDoc extends clsTinyButStrong
 
     if (!in_array($method, array('shell', 'ziparchive')))
     {
-      throw new Exception(sprintf('Zip method "%s" need to be \'shell\' or \'ziparchive\'', $method));
+      throw new tinyDocException(sprintf('Zip method "%s" need to be \'shell\' or \'ziparchive\'', $method));
     }
 
     if ($method == 'ziparchive' && !class_exists('ZipArchive'))
     {
-      throw new Exception('Zip extension not loaded - check your php settings, PHP 5.2 minimum with zip extension is required');
+      throw new tinyDocException('Zip extension not loaded - check your php settings, PHP 5.2 minimum with zip extension is required');
     }
 
     $this->zipMethod = $method;
@@ -963,7 +960,7 @@ class tinyDoc extends clsTinyButStrong
    */
   public function meth_Misc_Alert($Src, $Msg, $NoErrMsg=false, $SrcType=false)
   {
-    throw new Exception(sprintf('%s', $Msg));
+    throw new tinyDocException(sprintf('%s', $Msg));
   }
 
 
@@ -1013,7 +1010,7 @@ class tinyDoc extends clsTinyButStrong
 
       if ($container == '')
       {
-        throw new Exception(sprintf('<table:table-cell not found in document "%s"', $this->getXmlFilename()));
+        throw new tinyDocException(sprintf('<table:table-cell not found in document "%s"', $this->getXmlFilename()));
       }
 
       // OpenOffice attributes cell - see : http://books.evc-cit.info/odbook/ch05.html#table-cells-section
@@ -1087,7 +1084,7 @@ class tinyDoc extends clsTinyButStrong
 
       if ($container == '')
       {
-        throw new Exception(sprintf('<draw:frame not found in document "%s"', $this->getXmlFilename()));
+        throw new tinyDocException(sprintf('<draw:frame not found in document "%s"', $this->getXmlFilename()));
       }
 
       // test if data is empty or if file not exists
@@ -1106,7 +1103,7 @@ class tinyDoc extends clsTinyButStrong
       $size = @getimagesize($data);
       if ($size === false)
       {
-        throw new Exception(sprintf('Invalid image format "%"', $data));
+        throw new tinyDocException(sprintf('Invalid image format "%"', $data));
       }
       else
       {
@@ -1188,4 +1185,18 @@ class tinyDoc extends clsTinyButStrong
     return $ret;
   }
 
+}
+
+
+
+/**
+ * tinyDocException exception class
+ *
+ * @package    tinyDoc
+ * @subpackage tinyDocException
+ * @author     Olivier Loynet <tinydoc@googlegroups.com>
+ * @version    $Id$
+ */
+class tinyDocException extends Exception
+{
 }
