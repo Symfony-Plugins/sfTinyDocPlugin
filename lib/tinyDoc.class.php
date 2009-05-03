@@ -1,4 +1,17 @@
 <?php
+/*
+ * This file is part of the tinyDoc package.
+ * (c) Olivier Loynet
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * The current tinyDoc version.
+ */
+define('TINYDOC_VERSION', '1.0.2PRE');
+
 /**
  * tinyDoc class.
  *
@@ -19,7 +32,9 @@
 
 class tinyDoc extends clsTinyButStrong
 {
-  const PIXEL_TO_CM = 0.026458333; // from odtPHP lib
+  const PIXEL_TO_IN = 0.0104166667; //    1 / 96
+  const PIXEL_TO_CM = 0.0264583333; // 2.54 / 96
+  const PIXEL_TO_MM = 0.2645833333; // 25.4 / 96;
 
   private
     $zipMethod         = 'shell',
@@ -1107,26 +1122,26 @@ class tinyDoc extends clsTinyButStrong
       }
       elseif ($Loc->PrmLst['image'] === 'fit')
       {
-        preg_match('/svg:width="(.*?)cm" svg:height="(.*?)cm"/', $container, $matches);
-        $ratio_w = $matches[1] / ($width * self::PIXEL_TO_CM);
-        $ratio_h = $matches[2] / ($height * self::PIXEL_TO_CM);
+        preg_match('/svg:width="(.*?)(cm|in|mm|px)" svg:height="(.*?)(cm|in|mm|px)"/', $container, $matches);
+        $ratio_w = $matches[1] / ($width  * self::PIXEL_TO_CM);
+        $ratio_h = $matches[3] / ($height * self::PIXEL_TO_CM);
 
         $ratio = min($ratio_w, $ratio_h);
       }
       elseif ($Loc->PrmLst['image'] === 'max')
       {
-        preg_match('/svg:width="(.*?)cm" svg:height="(.*?)cm"/', $container, $matches);
-        $ratio_w = $matches[1] / ($width * self::PIXEL_TO_CM);
-        $ratio_h = $matches[2] / ($height * self::PIXEL_TO_CM);
+        preg_match('/svg:width="(.*?)(cm|in|mm|px)" svg:height="(.*?)(cm|in|mm|px)"/', $container, $matches);
+        $ratio_w = $matches[1] / ($width  * self::PIXEL_TO_CM);
+        $ratio_h = $matches[3] / ($height * self::PIXEL_TO_CM);
 
         $ratio = min(1, $ratio_w, $ratio_h);
       }
 
       // replace values
       $newContainer = $container;
-      $newContainer = preg_replace('/svg:width="(.*?)cm"/' , sprintf('svg:width="%scm"' , $width  * self::PIXEL_TO_CM * $ratio), $newContainer);
-      $newContainer = preg_replace('/svg:height="(.*?)cm"/', sprintf('svg:height="%scm"', $height * self::PIXEL_TO_CM * $ratio), $newContainer);
-      $newContainer = preg_replace('/xlink:href="(.*?)"/'  , sprintf('xlink:href="%s"'  , $picture), $newContainer);
+      $newContainer = preg_replace('/svg:width="(.*?)"/' , sprintf('svg:width="%scm"' , $width  * self::PIXEL_TO_CM * $ratio), $newContainer);
+      $newContainer = preg_replace('/svg:height="(.*?)"/', sprintf('svg:height="%scm"', $height * self::PIXEL_TO_CM * $ratio), $newContainer);
+      $newContainer = preg_replace('/xlink:href="(.*?)"/', sprintf('xlink:href="%s"'  , $picture), $newContainer);
 
       // add file
       $this->addFile($data, $picture);

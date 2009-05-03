@@ -541,6 +541,8 @@ Mailing-list : [http://groups.google.fr/group/tinydoc](http://groups.google.fr/g
 
 Please email to the mailing-list [tinydoc@googlegroups.com](mailto:tinydoc@googlegroups.com) for support (register only).
 
+Bug tracker : [http://trac.symfony-project.org/browser/plugins/sfTinyDocPlugin](http://trac.symfony-project.org/browser/plugins/sfTinyDocPlugin)
+
 The __tbsOOo class__ is no longer supported, and I strongly discourage his use.
 
 
