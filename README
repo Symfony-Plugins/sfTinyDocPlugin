@@ -49,15 +49,20 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
     * Works on *nix, win and other systems.
     * Templates can be created and modified __easyly__ by designer.
     * Templates layouts and styles are made with __OpenOffice__ or __Word2007__ application.
-    * Data in spreadsheet are converted to native OpenOffice format with the __new parameter__ named 'type'.
-      * Useful to use with spreadsheet formulas
-      * Useful to use the spreadsheet format
     * __For the [symfony framework](http://www.symfony-project.org)__
       * Works with sf1.0, sf1.1 and sf1.2
       * No dependance with ORM
       * Template have the same location as the symfony templates.
       * Template name have the same name as the symfony templates. __`moduleName/templates/actionNameSuccess.odt`__
       * Get the config from app.yml.
+
+  * __Only for OpenDocument (OpenOffice) :__
+
+    * Merge pictures dynamicaly with the __new parameter__ named 'image'. 
+    * Data in spreadsheet are converted to native OpenOffice format with the __new parameter__ named 'type'.
+      * Useful to work with spreadsheet formulas
+      * Useful to work the spreadsheet formats
+    * Transform data to a linkable text with the __new parameter__ named 'link'.
 
   * __Limitations :__
 
@@ -69,9 +74,6 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
     * Can't merge global vars __`[var.xxx]`__, use method __`mergeXmlField()`__ in place of use globals vars
     * Can't merge sub-block because TinyButStrong need global vars, see __`headergrp`__ syntax
 
-  * __Experimental for OpenOffice :__
-
-    * Add images dynamicaly, to make a catalog by example - The image size has to be the same as in the layout.
 
 
 ## Installation 
@@ -87,6 +89,7 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
   * Optionally add the following config to `app.yml` :
 
+        [yml]
         all:
           sf_tiny_doc_plugin:
             zip_method:    shell             # the method to zip/unzip : shell | ziparchive
@@ -110,7 +113,7 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
        To install Pecl ZipArchive on Red Hat Enterprise Linux or CentOS
 
-              $ yum install httpd-devel
+              $ yum install httpd-devel   # if necessary
               $ pecl install zip
 
   * Create a directory where to process temporary files, by example on web root :
@@ -195,7 +198,6 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
         shell
         zip
         unzip
-
 
         $doc->mergeXmlBlock() with an array
 
@@ -374,7 +376,9 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 
       MergeBlock it's for repetive fields to merge all items from an array.
 
-    > Note : If you don't define the begin block and the end of the block, the fields are merged one time.
+>**TIPS**
+> 
+> If you don't define the begin block and the end of the block, the fields are merged one time.
 
 
   * The two methods call the generic method : __`mergeXml($options, $data)`__
@@ -453,11 +457,14 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
             [block.src;image=max]
             [block.src;image=fit]
 
-    > Note #1 : The TBS tag is set in the image name. Use OpenOffice dialog box image property to edit.
-    > 
-    > Note #2 : The file image is added into the document and you don't have to use the __`addFile()`__ method. 
-    > 
-    > Note #3 : If the image is empty or not found, the image is removed.
+
+>**NOTES**
+> 
+> Note #1 : The TBS tag is set in the image name. Use OpenOffice dialog box image property to edit.
+> 
+> Note #2 : The file image is added into the document and you don't have to use the __`addFile()`__ method. 
+> 
+> Note #3 : If the image is empty or not found, the image is removed.
 
 
   * __link__ : This parameter to transform to a linkable text
@@ -482,9 +489,11 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
             [block.data;type=percentage]
             [block.data;type=time]
 
-    > Note #1 : __Only one TBS field__ can be merge in a cell when the parameter __`type`__ is set.
-    > 
-    > Note #2 : To fix the __format__ the cell, use OpenOffice dialog box format for that. Don't use __`frm`__ parameter.
+>**NOTES**
+> 
+> Note #1 : __Only one TBS field__ can be merge in a cell when the parameter __`type`__ is set.
+> 
+> Note #2 : To fix the __format__ the cell, use OpenOffice dialog box format for that. Don't use __`frm`__ parameter.
 
 
 
@@ -494,14 +503,21 @@ The sfTinyDocPlugin allows to generate __OpenOffice__ (OpenDocument) and __Word 
 As in French we can said, "Un dessin vaut mieux qu'un long discours", here some [examples](http://tinydoc.unesolution.fr/examples) for sfTinyDocPlugin
 
 
-## Bugs
+## Releases
 
-* FIXED : news parameters [link, image and type] only work with data merged from an array
+* Release 1.0.2 
+  * ADDED : support differents units for picture (cm, mm, in, px)
+  * ADDED : the tinyDoc version in a constant, __`tinyDoc::VERSION`__
+  * FIXED : news parameters [link, image and type] can merge with data type var and array
 
+* Release 1.0.1 
+  * ADDED : parameter [image] to merge pictures for OpenDocument
+  * ADDED : parameter [link] to merge linkable text for OpenDocument
 
-## Features
+* Release 1.0.0
+  * Initial
 
-* support 'inches' in parameter image
+## Bugs / Features
 
 * add formula support in spreadsheet
 
