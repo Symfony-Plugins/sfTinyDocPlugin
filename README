@@ -505,6 +505,10 @@ As in French we can said, "Un dessin vaut mieux qu'un long discours", here some 
 
 ## Releases
 
+* Release 1.0.3 
+  * ADDED : static method  __`self::escapeShellCommand()`__ to replace the escapeshellcmd PHP function
+  * FIXED bug #6436 : to a better support than escapeshellcmd PHP function used 
+
 * Release 1.0.2 
   * ADDED : support differents units for picture (cm, mm, in, px)
   * ADDED : the tinyDoc version in a constant, __`tinyDoc::VERSION`__

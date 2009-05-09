@@ -11,12 +11,12 @@
   <active>yes</active>
  </lead>
 
- <date>2009-05-04</date>
- <time>17:33:00</time>
+ <date>2009-05-09</date>
+ <time>14:00:00</time>
 
  <version>
-  <release>1.0.2</release>
-  <api>1.0.2</api>
+  <release>1.0.3</release>
+  <api>1.0.3</api>
  </version>
 
  <stability>
@@ -58,6 +58,23 @@
  <phprelease />
 
 <changelog>
+
+  <release>
+    <version>
+      <release>1.0.3</release>
+      <api>1.0.3</api>
+    </version>
+    <stability>
+     <release>stable</release>
+     <api>stable</api>
+    </stability>
+    <license uri="http://www.symfony-project.org/license">MIT license</license>
+    <date>2009-05-09</date>
+    <license>MIT</license>
+    <notes>
+      * bug fixed #6436 : to a better support than escapeshellcmd PHP function used 
+    </notes>
+  </release>
 
   <release>
     <version>
