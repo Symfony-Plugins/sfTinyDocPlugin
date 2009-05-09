@@ -27,7 +27,7 @@
 
 class tinyDoc extends clsTinyButStrong
 {
-  const VERSION     = '1.0.2';
+  const VERSION     = '1.0.3';
 
   const PICTURE_DPI = 96;
   const INCH_TO_CM  = 2.54;
@@ -166,7 +166,7 @@ class tinyDoc extends clsTinyButStrong
 
       case 'shell':
       default:
-        $cmd = escapeshellcmd($this->getUnzipBinary());
+        $cmd = $this->getUnzipBinary();
         $cmd.= ' '.escapeshellarg($this->getPathname());
         $cmd.= ' -d';
         $cmd.= ' '.escapeshellarg($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename());
@@ -286,7 +286,7 @@ class tinyDoc extends clsTinyButStrong
         chdir($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename().DIRECTORY_SEPARATOR);
 
         // zip the XML file into the archive
-        $cmd = escapeshellcmd($this->getZipBinary());
+        $cmd = $this->getZipBinary();
         $cmd.= ' -m';
         $cmd.= ' '.escapeshellarg($this->getPathname());
         $cmd.= ' '.escapeshellarg($this->getXmlFilename());
@@ -485,7 +485,7 @@ class tinyDoc extends clsTinyButStrong
             chdir($this->getProcessDir().DIRECTORY_SEPARATOR.$this->getBasename().DIRECTORY_SEPARATOR);
 
             // zip the file into the archive
-            $cmd = escapeshellcmd($this->getZipBinary());
+            $cmd = $this->getZipBinary();
             $cmd.= ' -u';
             $cmd.= ' '.escapeshellarg($this->getPathname());
             $cmd.= ' '.escapeshellarg($archivePathname);
@@ -884,6 +884,8 @@ class tinyDoc extends clsTinyButStrong
   {
     if ($this->getZipMethod() == 'shell')
     {
+      $unzipBinary = self::escapeShellCommand($unzipBinary);
+
       if (strlen(shell_exec($unzipBinary.' -h')) == 0)
       {
         throw new tinyDocException(sprintf('"%s" not executable', $unzipBinary));
@@ -914,6 +916,8 @@ class tinyDoc extends clsTinyButStrong
   {
     if ($this->getZipMethod() == 'shell')
     {
+      $zipBinary = self::escapeShellCommand($zipBinary);
+
       if (strlen(shell_exec($zipBinary.' -h')) == 0)
       {
         throw new tinyDocException(sprintf('"%s" not executable', $zipBinary));
@@ -1188,6 +1192,7 @@ class tinyDoc extends clsTinyButStrong
     return $ret;
   }
 
+
   public static function convertToCm($value, $unit)
   {
     switch(strtolower($unit))
@@ -1208,6 +1213,17 @@ class tinyDoc extends clsTinyButStrong
     }
 
     return $returnValue;
+  }
+
+
+  public static function escapeShellCommand($command)
+  {
+    if (strpos($command, ' ') !== false)
+    {
+      $command = (strpos($command, '"') === 0 ? '' : '"').$command;
+      $command = $command.((strrpos($command, '"') == strlen($command)-1) ? '' : '"');
+    }
+    return $command;
   }
 
 }
